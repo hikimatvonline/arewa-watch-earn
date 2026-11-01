@@ -97,7 +97,7 @@ button:disabled {
 <div class="card">
     <h3>📺 Watch Advertisements</h3>
     <p>Watch advertisements and earn coins.</p>
-    <button disabled>ADS COMING SOON</button>
+    <button onclick="watchAd()">Watch Ads</button>
     <small>Rewarded ads will be activated after integration.</small>
 </div>
 
@@ -140,7 +140,22 @@ button:disabled {
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
+function watchAd() {
+    if (typeof show_12171277 !== "function") {
+        alert("Ad is not ready. Please try again.");
+        return;
+    }
 
+    show_12171277().then((result) => {
+        if (result && result.reward_event_type === "valued") {
+            alert("Congratulations! Your ad view was verified.");
+        } else {
+            alert("Ad viewed, but no reward was confirmed.");
+        }
+    }).catch(() => {
+        alert("Ad failed to load. Please try again.");
+    });
+    }
 function bonus() {
     alert("Daily Bonus will be activated soon!");
 }
