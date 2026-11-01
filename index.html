@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AREWA WATCH & EARN</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #071b17;
+    color: white;
+}
+.container {
+    max-width: 450px;
+    margin: auto;
+    padding: 20px;
+}
+.header {
+    text-align: center;
+    padding: 20px;
+}
+.header h1 {
+    color: #20e69a;
+    font-size: 25px;
+}
+.balance {
+    background: linear-gradient(135deg,#087b51,#12bd79);
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
+    margin: 20px 0;
+}
+.balance h2 {
+    font-size: 35px;
+    margin: 10px;
+}
+.card {
+    background: #122d26;
+    padding: 18px;
+    border-radius: 15px;
+    margin: 14px 0;
+}
+.card h3 {
+    margin-top: 0;
+}
+button {
+    width: 100%;
+    padding: 14px;
+    background: #16c784;
+    color: #06251a;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+button:disabled {
+    background: #53665e;
+    color: white;
+}
+.menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.menu .card {
+    text-align: center;
+}
+.footer {
+    text-align: center;
+    color: #91a89e;
+    padding: 20px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+    <h1>AREWA WATCH & EARN</h1>
+    <p>Watch Ads • Earn Rewards</p>
+</div>
+
+<div class="balance">
+    <p>YOUR TOTAL BALANCE</p>
+    <h2 id="coins">0 🪙</h2>
+    <p>AREWA Coins</p>
+</div>
+
+<div class="card">
+    <h3>📺 Watch Advertisements</h3>
+    <p>Watch advertisements and earn coins.</p>
+    <button disabled>ADS COMING SOON</button>
+    <small>Rewarded ads will be activated after integration.</small>
+</div>
+
+<div class="menu">
+
+<div class="card">
+    <h3>🎁 Daily Bonus</h3>
+    <p>Claim your daily reward.</p>
+    <button onclick="bonus()">Claim Bonus</button>
+</div>
+
+<div class="card">
+    <h3>👥 Invite Friends</h3>
+    <p>Invite your friends.</p>
+    <button onclick="invite()">Invite</button>
+</div>
+
+<div class="card">
+    <h3>💰 My Wallet</h3>
+    <p>Check your balance.</p>
+    <button onclick="wallet()">My Wallet</button>
+</div>
+
+<div class="card">
+    <h3>💎 Withdraw TON</h3>
+    <p>Withdraw your rewards.</p>
+    <button disabled>Coming Soon</button>
+</div>
+
+</div>
+
+<div class="footer">
+    <p>© 2026 AREWA WATCH & EARN</p>
+    <p>Earn Rewards • Enjoy Watching</p>
+</div>
+
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+function bonus() {
+    alert("Daily Bonus will be activated soon!");
+}
+
+function invite() {
+    const link = "https://t.me/ArewaWatchEarnBot";
+    if (navigator.share) {
+        navigator.share({
+            title: "AREWA WATCH & EARN",
+            text: "Join AREWA WATCH & EARN!",
+            url: link
+        });
+    } else {
+        alert(link);
+    }
+}
+
+function wallet() {
+    alert("Your wallet will be activated soon.");
+}
+</script>
+
+</body>
+</html>
