@@ -1,192 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src='//libtl.com/sdk.js' data-zone='12171277' data-sdk='show_12171277'></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AREWA WATCH & EARN</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AREWA WATCH & EARN</title>
 
-<style>
-* {
-    box-sizing: border-box;
-}
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #071b17;
-    color: white;
-}
-.container {
-    max-width: 450px;
-    margin: auto;
-    padding: 20px;
-}
-.header {
-    text-align: center;
-    padding: 20px;
-}
-.header h1 {
-    color: #20e69a;
-    font-size: 25px;
-}
-.balance {
-    background: linear-gradient(135deg,#087b51,#12bd79);
-    padding: 25px;
-    border-radius: 18px;
-    text-align: center;
-    margin: 20px 0;
-}
-.balance h2 {
-    font-size: 35px;
-    margin: 10px;
-}
-.card {
-    background: #122d26;
-    padding: 18px;
-    border-radius: 15px;
-    margin: 14px 0;
-}
-.card h3 {
-    margin-top: 0;
-}
-button {
-    width: 100%;
-    padding: 14px;
-    background: #16c784;
-    color: #06251a;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-button:disabled {
-    background: #53665e;
-    color: white;
-}
-.menu {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-.menu .card {
-    text-align: center;
-}
-.footer {
-    text-align: center;
-    color: #91a89e;
-    padding: 20px;
-}
-</style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://libtl.com/sdk.js" data-zone="12171277" data-sdk="show_12171277"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #101827;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    .box {
+      max-width: 420px;
+      margin: 20px auto;
+      padding: 22px;
+      background: #1e293b;
+      border-radius: 15px;
+    }
+    h1 { color: #22c55e; }
+    .balance {
+      font-size: 30px;
+      color: #facc15;
+      margin: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: 0;
+      border-radius: 9px;
+      background: #16a34a;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:disabled { background: #64748b; }
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #64748b;
+    }
+    #status { color: #facc15; }
+  </style>
 </head>
 
 <body>
-<div class="container">
-
-<div class="header">
+  <div class="box">
     <h1>AREWA WATCH & EARN</h1>
-    <p>Watch Ads • Earn Rewards</p>
-</div>
+    <p>Welcome to our earning platform</p>
 
-<div class="balance">
-    <p>YOUR TOTAL BALANCE</p>
-    <h2 id="coins">0 🪙</h2>
-    <p>AREWA Coins</p>
-</div>
+    <h3>Your Coin Balance</h3>
+    <div class="balance" id="coins">Loading...</div>
+    <p id="status">Connecting...</p>
 
-<div class="card">
-    <h3>📺 Watch Advertisements</h3>
-    <p>Watch advertisements and earn coins.</p>
-    <button onclick="watchAd()">Watch Ads</button>
-    <small>Rewarded ads will be activated after integration.</small>
-</div>
+    <button onclick="watchAd()">📺 Watch Ads</button>
+    <button onclick="dailyBonus()" disabled>🎁 Daily Bonus (Coming Soon)</button>
+    <button onclick="invite()">👥 Invite Friends</button>
 
-<div class="menu">
+    <hr>
 
-<div class="card">
-    <h3>🎁 Daily Bonus</h3>
-    <p>Claim your daily reward.</p>
-    <button onclick="bonus()">Claim Bonus</button>
-</div>
+    <h3>TON Wallet</h3>
+    <input id="wallet" type="text" placeholder="Enter your TON wallet address">
+    <button onclick="saveWallet()">Save TON Wallet</button>
 
-<div class="card">
-    <h3>👥 Invite Friends</h3>
-    <p>Invite your friends.</p>
-    <button onclick="invite()">Invite</button>
-</div>
-
-<div class="card">
-    <h3>💰 My Wallet</h3>
-    <p>Check your balance.</p>
-    <button onclick="wallet()">My Wallet</button>
-</div>
-
-<div class="card">
-    <h3>💎 Withdraw TON</h3>
-    <p>Withdraw your rewards.</p>
-    <button disabled>Coming Soon</button>
-</div>
-
-</div>
-
-<div class="footer">
-    <p>© 2026 AREWA WATCH & EARN</p>
-    <p>Earn Rewards • Enjoy Watching</p>
-</div>
-
-</div>
+    <button disabled>💸 Withdraw (Coming Soon)</button>
+  </div>
 
 <script>
+const API = "https://arewawatchearn.abdullahiyaya5555.workers.dev";
 const tg = window.Telegram.WebApp;
+
 tg.ready();
 tg.expand();
-function watchAd() {
-    if (typeof show_12171277 !== "function") {
-        alert("Ad is not ready. Please try again.");
-        return;
-    }
 
-    const ymid = "ad_" + Date.now() + "_" +
-        Math.random().toString(36).slice(2, 10);
-
-    show_12171277({
-        ymid: ymid,
-        requestVar: "watch_ads"
-    }).then((result) => {
-        console.log("Monetag result:", result);
-
-        if (result?.reward_event_type === "valued") {
-            alert("Ad verified! Reward confirmation is being processed.");
-        } else {
-            alert("Ad closed, but no paid reward was confirmed.");
-        }
-    }).catch((error) => {
-        console.log("Monetag error:", error);
-        alert("Ad failed to load. Please try again.");
-    });
+function headers() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": "tma " + tg.initData
+  };
 }
 
-function bonus() {
-    alert("Daily Bonus will be activated soon!");
+async function loadAccount() {
+  if (!tg.initData) {
+    document.getElementById("status").textContent =
+      "Please open this app inside Telegram.";
+    document.getElementById("coins").textContent = "—";
+    return;
+  }
+
+  try {
+    const res = await fetch(API + "/api/me", {
+      method: "GET",
+      headers: headers()
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Connection failed");
+    }
+
+    document.getElementById("coins").textContent =
+      Number(data.user.coins).toLocaleString();
+
+    document.getElementById("wallet").value =
+      data.user.ton_wallet || "";
+
+    document.getElementById("status").textContent =
+      "Account connected successfully.";
+  } catch (error) {
+    document.getElementById("status").textContent =
+      "Connection error: " + error.message;
+  }
+}
+
+function watchAd() {
+  if (!tg.initData) {
+    alert("Open the app inside Telegram.");
+    return;
+  }
+
+  if (typeof show_12171277 !== "function") {
+    alert("Ad is not ready. Please try again.");
+    return;
+  }
+
+  const ymid = "ad_" + Date.now() + "_" +
+    Math.random().toString(36).slice(2, 10);
+
+  show_12171277({
+    ymid: ymid,
+    requestVar: "watch_ads"
+  }).then(result => {
+    if (result?.reward_event_type === "valued") {
+      alert("Ad completed. Reward confirmation will be processed by the server.");
+    } else {
+      alert("No valued reward was confirmed.");
+    }
+  }).catch(error => {
+    console.log(error);
+    alert("Ad failed to load. Please try again.");
+  });
+}
+
+async function saveWallet() {
+  const wallet = document.getElementById("wallet").value.trim();
+
+  if (wallet.length < 20 || wallet.length > 100) {
+    alert("Please enter a valid TON wallet address.");
+    return;
+  }
+
+  try {
+    const res = await fetch(API + "/api/ton-wallet", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ wallet })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Could not save wallet");
+
+    alert("TON wallet saved successfully.");
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function invite() {
-    const link = "https://t.me/ArewaWatchEarnBot";
-    if (navigator.share) {
-        navigator.share({
-            title: "AREWA WATCH & EARN",
-            text: "Join AREWA WATCH & EARN!",
-            url: link
-        });
-    } else {
-        alert(link);
-    }
+  const link = "https://t.me/ArewaWatchEarnBot";
+  const text = "Join AREWA WATCH & EARN!";
+  tg.openTelegramLink(
+    "https://t.me/share/url?url=" +
+    encodeURIComponent(link) +
+    "&text=" + encodeURIComponent(text)
+  );
 }
 
-function wallet() {
-    alert("Your wallet will be activated soon.");
+function dailyBonus() {
+  alert("Daily Bonus is not active yet.");
 }
+
+loadAccount();
 </script>
-
 </body>
 </html>
