@@ -147,15 +147,19 @@ function watchAd() {
     }
 
     show_12171277().then((result) => {
-        if (result && result.reward_event_type === "valued") {
+        console.log("Monetag result:", result);
+
+        if (result?.reward_event_type === "valued") {
             alert("Congratulations! Your ad view was verified.");
         } else {
-            alert("Ad viewed, but no reward was confirmed.");
+            alert("Ad closed, but Monetag did not confirm a reward.");
         }
-    }).catch(() => {
+    }).catch((error) => {
+        console.log("Monetag error:", error);
         alert("Ad failed to load. Please try again.");
     });
-    }
+}
+
 function bonus() {
     alert("Daily Bonus will be activated soon!");
 }
