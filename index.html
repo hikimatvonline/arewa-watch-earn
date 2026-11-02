@@ -146,13 +146,19 @@ function watchAd() {
         return;
     }
 
-    show_12171277().then((result) => {
+    const ymid = "ad_" + Date.now() + "_" +
+        Math.random().toString(36).slice(2, 10);
+
+    show_12171277({
+        ymid: ymid,
+        requestVar: "watch_ads"
+    }).then((result) => {
         console.log("Monetag result:", result);
 
         if (result?.reward_event_type === "valued") {
-            alert("Congratulations! Your ad view was verified.");
+            alert("Ad verified! Reward confirmation is being processed.");
         } else {
-            alert("Ad closed, but Monetag did not confirm a reward.");
+            alert("Ad closed, but no paid reward was confirmed.");
         }
     }).catch((error) => {
         console.log("Monetag error:", error);
