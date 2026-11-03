@@ -1,105 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AREWA WATCH & EARN</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AREWA WATCH & EARN</title>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://libtl.com/sdk.js" data-zone="12171277" data-sdk="show_12171277"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://libtl.com/sdk.js" data-zone="12171277" data-sdk="show_12171277"></script>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #101827;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+<style>
+body {
+  margin: 0;
+  padding: 20px;
+  background: #101827;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
 
-    .box {
-      max-width: 420px;
-      margin: 20px auto;
-      padding: 22px;
-      background: #1e293b;
-      border-radius: 15px;
-    }
+.box {
+  max-width: 420px;
+  margin: 20px auto;
+  padding: 22px;
+  background: #1e293b;
+  border-radius: 15px;
+}
 
-    h1 { color: #22c55e; }
+h1 { color: #22c55e; }
 
-    .balance {
-      font-size: 30px;
-      color: #facc15;
-      margin: 15px;
-    }
+.balance {
+  font-size: 30px;
+  color: #facc15;
+  margin: 15px;
+}
 
-    button {
-      width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border: 0;
-      border-radius: 9px;
-      background: #16a34a;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-    }
+button {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: 0;
+  border-radius: 9px;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
 
-    button:disabled {
-      background: #64748b;
-    }
+button:disabled { background: #64748b; }
 
-    input {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 13px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #64748b;
-    }
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #64748b;
+}
 
-    #status { color: #facc15; }
-  </style>
+#status { color: #facc15; }
+.referrals { color: #22c55e; font-size: 18px; }
+</style>
 </head>
 
 <body>
 
 <div class="box">
 
-  <h1>AREWA WATCH & EARN</h1>
-  <p>Welcome to our earning platform</p>
+<h1>AREWA WATCH & EARN</h1>
+<p>Welcome to our earning platform</p>
 
-  <h3>Your Coin Balance</h3>
-  <div class="balance" id="coins">Loading...</div>
-  <p id="status">Connecting...</p>
+<h3>Your Coin Balance</h3>
+<div class="balance" id="coins">Loading...</div>
 
-  <button id="watchButton" onclick="watchAd()">
-    📺 Watch Ads
-  </button>
+<p id="status">Connecting...</p>
 
-  <button onclick="dailyBonus()" disabled>
-    🎁 Daily Bonus (Coming Soon)
-  </button>
+<button id="watchButton" onclick="watchAd()">
+📺 Watch Ads
+</button>
 
-  <button onclick="invite()">
-    👥 Invite Friends
-  </button>
+<button onclick="dailyBonus()" disabled>
+🎁 Daily Bonus (Coming Soon)
+</button>
 
-  <hr>
+<button onclick="invite()">
+👥 Invite Friends
+</button>
 
-  <h3>TON Wallet</h3>
+<p class="referrals">
+Your Referrals: <span id="referralCount">0</span>
+</p>
 
-  <input id="wallet" type="text"
-    placeholder="Enter your TON wallet address">
+<hr>
 
-  <button onclick="saveWallet()">
-    Save TON Wallet
-  </button>
+<h3>TON Wallet</h3>
 
-  <button disabled>
-    💸 Withdraw (Coming Soon)
-  </button>
+<input id="wallet" type="text"
+placeholder="Enter your TON wallet address">
+
+<button onclick="saveWallet()">
+Save TON Wallet
+</button>
+
+<button disabled>
+💸 Withdraw (Coming Soon)
+</button>
 
 </div>
 
@@ -115,6 +119,11 @@ tg.expand();
 let adRunning = false;
 let cooldownUntil = 0;
 let countdownTimer = null;
+
+
+// REFERRAL PARAMETER
+
+const startParam = tg.initDataUnsafe?.start_param || "";
 
 
 // AUTHENTICATION HEADERS
@@ -140,7 +149,10 @@ async function loadAccount() {
 
   try {
 
-    const res = await fetch(API + "/api/me", {
+    const meURL = API + "/api/me?start_param=" +
+      encodeURIComponent(startParam);
+
+    const res = await fetch(meURL, {
       method: "GET",
       headers: headers()
     });
@@ -151,18 +163,19 @@ async function loadAccount() {
       throw new Error(data.error || "Account connection failed");
     }
 
-    const balance = Number(data.user.coins || 0);
-
     document.getElementById("coins").textContent =
-      balance.toLocaleString();
+      Number(data.user.coins || 0).toLocaleString();
 
     document.getElementById("wallet").value =
       data.user.ton_wallet || "";
 
+    document.getElementById("referralCount").textContent =
+      Number(data.user.referrals_count || 0);
+
     document.getElementById("status").textContent =
       "Account connected successfully.";
 
-    return balance;
+    return Number(data.user.coins || 0);
 
   } catch (error) {
 
@@ -229,7 +242,7 @@ async function startAdPermission() {
 
   if (res.status === 429) {
 
-    startCountdown(data.remaining || 30);
+    startCountdown(data.remaining || 60);
 
     document.getElementById("status").textContent =
       "Please wait before watching another ad.";
@@ -237,7 +250,7 @@ async function startAdPermission() {
     return false;
   }
 
-  if (!res.ok || !data.success || !data.allowed) {
+  if (!res.ok || !data.success) {
     throw new Error(data.error || "Could not start advertisement.");
   }
 
@@ -257,10 +270,7 @@ async function refreshReward(oldBalance) {
 
     const newBalance = await loadAccount();
 
-    if (
-      newBalance !== null &&
-      newBalance > oldBalance
-    ) {
+    if (newBalance !== null && newBalance > oldBalance) {
 
       document.getElementById("status").textContent =
         "Congratulations! Your reward has arrived.";
@@ -301,24 +311,16 @@ async function watchAd() {
 
   try {
 
-    // CHECK SERVER COOLDOWN
-
     const permitted = await startAdPermission();
 
     if (!permitted) return;
-
-    // SAVE CURRENT BALANCE
 
     const oldBalance =
       Number(
         document.getElementById("coins").textContent.replace(/,/g, "")
       ) || 0;
 
-    // START 30 SECOND SERVER COOLDOWN
-
-    startCountdown(30);
-
-    // UNIQUE AD ID
+    startCountdown(60);
 
     const ymid =
       "ad_" + Date.now() + "_" +
@@ -326,8 +328,6 @@ async function watchAd() {
 
     document.getElementById("status").textContent =
       "Loading advertisement...";
-
-    // SHOW MONETAG REWARDED AD
 
     const result = await show_12171277({
       ymid: ymid,
@@ -358,7 +358,6 @@ async function watchAd() {
   } finally {
 
     adRunning = false;
-
     updateCooldown();
 
   }
@@ -405,9 +404,18 @@ async function saveWallet() {
 
 function invite() {
 
-  const link = "https://t.me/ArewaWatchEarnBot";
+  if (!tg.initDataUnsafe?.user?.id) {
+    alert("Please open this app inside Telegram.");
+    return;
+  }
 
-  const text = "Join AREWA WATCH & EARN!";
+  const myId = tg.initDataUnsafe.user.id;
+
+  const link =
+    "https://t.me/ArewaWatchEarnBot?startapp=ref_" + myId;
+
+  const text =
+    "Join AREWA WATCH & EARN! Watch ads and earn AREWA Coins.";
 
   tg.openTelegramLink(
     "https://t.me/share/url?url=" +
@@ -482,5 +490,6 @@ loadAccount();
 setTimeout(startInAppAds, 5000);
 
 </script>
+
 </body>
 </html>
