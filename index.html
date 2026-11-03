@@ -192,6 +192,38 @@ function dailyBonus() {
   alert("Daily Bonus is not active yet.");
 }
 
+// IN-APP INTERSTITIAL ADS
+let inAppAttempts = 0;
+
+function startInAppAds() {
+  if (!tg.initData) return;
+
+  if (typeof show_12171277 !== "function") {
+    if (inAppAttempts < 10) {
+      inAppAttempts++;
+      setTimeout(startInAppAds, 1000);
+    }
+    return;
+  }
+
+  try {
+    show_12171277({
+      type: "inApp",
+      inAppSettings: {
+        frequency: 1,
+        capping: 0.1,
+        interval: 30,
+        timeout: 5,
+        everyPage: false
+      }
+    });
+  } catch (error) {
+    console.log("In-app ad error:", error);
+  }
+}
+
+setTimeout(startInAppAds, 5000);
+
 loadAccount();
 </script>
 </body>
