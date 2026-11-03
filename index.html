@@ -17,6 +17,7 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+
     .box {
       max-width: 420px;
       margin: 20px auto;
@@ -24,12 +25,15 @@
       background: #1e293b;
       border-radius: 15px;
     }
+
     h1 { color: #22c55e; }
+
     .balance {
       font-size: 30px;
       color: #facc15;
       margin: 15px;
     }
+
     button {
       width: 100%;
       padding: 14px;
@@ -41,7 +45,9 @@
       font-size: 16px;
       font-weight: bold;
     }
+
     button:disabled { background: #64748b; }
+
     input {
       box-sizing: border-box;
       width: 100%;
@@ -50,38 +56,67 @@
       border-radius: 8px;
       border: 1px solid #64748b;
     }
+
     #status { color: #facc15; }
   </style>
 </head>
 
 <body>
-  <div class="box">
-    <h1>AREWA WATCH & EARN</h1>
-    <p>Welcome to our earning platform</p>
 
-    <h3>Your Coin Balance</h3>
-    <div class="balance" id="coins">Loading...</div>
-    <p id="status">Connecting...</p>
+<div class="box">
 
-    <button onclick="watchAd()">📺 Watch Ads</button>
-    <button onclick="dailyBonus()" disabled>🎁 Daily Bonus (Coming Soon)</button>
-    <button onclick="invite()">👥 Invite Friends</button>
+  <h1>AREWA WATCH & EARN</h1>
+  <p>Welcome to our earning platform</p>
 
-    <hr>
+  <h3>Your Coin Balance</h3>
+  <div class="balance" id="coins">Loading...</div>
+  <p id="status">Connecting...</p>
 
-    <h3>TON Wallet</h3>
-    <input id="wallet" type="text" placeholder="Enter your TON wallet address">
-    <button onclick="saveWallet()">Save TON Wallet</button>
+  <button id="watchButton" onclick="watchAd()">
+    📺 Watch Ads
+  </button>
 
-    <button disabled>💸 Withdraw (Coming Soon)</button>
-  </div>
+  <button onclick="dailyBonus()" disabled>
+    🎁 Daily Bonus (Coming Soon)
+  </button>
+
+  <button onclick="invite()">
+    👥 Invite Friends
+  </button>
+
+  <hr>
+
+  <h3>TON Wallet</h3>
+
+  <input
+    id="wallet"
+    type="text"
+    placeholder="Enter your TON wallet address">
+
+  <button onclick="saveWallet()">
+    Save TON Wallet
+  </button>
+
+  <button disabled>
+    💸 Withdraw (Coming Soon)
+  </button>
+
+</div>
 
 <script>
+
 const API = "https://arewawatchearn.abdullahiyaya5555.workers.dev";
+
 const tg = window.Telegram.WebApp;
 
 tg.ready();
 tg.expand();
+
+let adRunning = false;
+let countdownTimer = null;
+
+
+// HEADERS
 
 function headers() {
   return {
@@ -90,12 +125,17 @@ function headers() {
   };
 }
 
+
+// LOAD ACCOUNT
+
 async function loadAccount() {
+
   if (!tg.initData) {
     document.getElementById("status").textContent =
       "Please open this app inside Telegram.";
+
     document.getElementById("coins").textContent = "—";
-    return;
+    return null;
   }
 
   try {
@@ -118,113 +158,125 @@ async function loadAccount() {
 
     document.getElementById("status").textContent =
       "Account connected successfully.";
+
+    return Number(data.user.coins);
+
   } catch (error) {
     document.getElementById("status").textContent =
       "Connection error: " + error.message;
+
+    return null;
   }
 }
 
-function watchAd() {
+
+// COUNTDOWN
+
+function startCountdown(seconds) {
+
+  clearInterval(countdownTimer);
+
+  const button = document.getElementById("watchButton");
+
+  let remaining = Math.max(1, Number(seconds));
+
+  button.disabled = true;
+
+  function update() {
+
+    button.textContent =
+      "⏳ Next Ad in " + remaining + "s";
+
+    if (remaining <= 0) {
+
+      clearInterval(countdownTimer);
+
+      button.disabled = false;
+      button.textContent = "📺 Watch Ads";
+
+      document.getElementById("status").textContent =
+        "You can watch another ad now.";
+
+      return;
+    }
+
+    remaining--;
+  }
+
+  update();
+
+  countdownTimer = setInterval(update, 1000);
+}
+
+
+// CHECK COOLDOWN ON SERVER
+
+async function startAdPermission() {
+
+  const res = await fetch(API + "/api/start-ad", {
+    method: "POST",
+    headers: headers()
+  });
+
+  const data = await res.json();
+
+  if (res.status === 429) {
+    startCountdown(data.remaining || 30);
+
+    document.getElementById("status").textContent =
+      "Please wait before watching another ad.";
+
+    return false;
+  }
+
+  if (!res.ok || !data.success || !data.allowed) {
+    throw new Error(data.error || "Could not start ad.");
+  }
+
+  return true;
+}
+
+
+// REFRESH REWARD
+
+async function refreshReward(oldBalance) {
+
+  for (let i = 0; i < 10; i++) {
+
+    await new Promise(resolve =>
+      setTimeout(resolve, 3000)
+    );
+
+    const newBalance = await loadAccount();
+
+    if (
+      newBalance !== null &&
+      newBalance > oldBalance
+    ) {
+
+      document.getElementById("status").textContent =
+        "Reward received successfully!";
+
+      return true;
+    }
+  }
+
+  document.getElementById("status").textContent =
+    "Reward confirmation is pending. Please check again later.";
+
+  return false;
+}
+
+
+// WATCH ADS
+
+async function watchAd() {
+
   if (!tg.initData) {
     alert("Open the app inside Telegram.");
     return;
   }
 
-  if (typeof show_12171277 !== "function") {
-    alert("Ad is not ready. Please try again.");
-    return;
-  }
-
-  const ymid = "ad_" + Date.now() + "_" +
-    Math.random().toString(36).slice(2, 10);
-
-  show_12171277({
-    ymid: ymid,
-    requestVar: "watch_ads"
-  }).then(result => {
-    if (result?.reward_event_type === "valued") {
-      alert("Ad completed. Reward confirmation will be processed by the server.");
-    } else {
-      alert("No valued reward was confirmed.");
-    }
-  }).catch(error => {
-    console.log(error);
-    alert("Ad failed to load. Please try again.");
-  });
-}
-
-async function saveWallet() {
-  const wallet = document.getElementById("wallet").value.trim();
-
-  if (wallet.length < 20 || wallet.length > 100) {
-    alert("Please enter a valid TON wallet address.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API + "/api/ton-wallet", {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ wallet })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || "Could not save wallet");
-
-    alert("TON wallet saved successfully.");
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-function invite() {
-  const link = "https://t.me/ArewaWatchEarnBot";
-  const text = "Join AREWA WATCH & EARN!";
-  tg.openTelegramLink(
-    "https://t.me/share/url?url=" +
-    encodeURIComponent(link) +
-    "&text=" + encodeURIComponent(text)
-  );
-}
-
-function dailyBonus() {
-  alert("Daily Bonus is not active yet.");
-}
-
-// IN-APP INTERSTITIAL ADS
-let inAppAttempts = 0;
-
-function startInAppAds() {
-  if (!tg.initData) return;
+  if (adRunning) return;
 
   if (typeof show_12171277 !== "function") {
-    if (inAppAttempts < 10) {
-      inAppAttempts++;
-      setTimeout(startInAppAds, 1000);
-    }
-    return;
-  }
-
-  try {
-    show_12171277({
-      type: "inApp",
-      inAppSettings: {
-        frequency: 1,
-        capping: 0.1,
-        interval: 30,
-        timeout: 5,
-        everyPage: false
-      }
-    });
-  } catch (error) {
-    console.log("In-app ad error:", error);
-  }
-}
-
-setTimeout(startInAppAds, 5000);
-
-loadAccount();
-</script>
-</body>
-</html>
