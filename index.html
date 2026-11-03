@@ -46,7 +46,9 @@
       font-weight: bold;
     }
 
-    button:disabled { background: #64748b; }
+    button:disabled {
+      background: #64748b;
+    }
 
     input {
       box-sizing: border-box;
@@ -88,9 +90,7 @@
 
   <h3>TON Wallet</h3>
 
-  <input
-    id="wallet"
-    type="text"
+  <input id="wallet" type="text"
     placeholder="Enter your TON wallet address">
 
   <button onclick="saveWallet()">
@@ -113,10 +113,11 @@ tg.ready();
 tg.expand();
 
 let adRunning = false;
+let cooldownUntil = 0;
 let countdownTimer = null;
 
 
-// HEADERS
+// AUTHENTICATION HEADERS
 
 function headers() {
   return {
@@ -131,14 +132,14 @@ function headers() {
 async function loadAccount() {
 
   if (!tg.initData) {
+    document.getElementById("coins").textContent = "—";
     document.getElementById("status").textContent =
       "Please open this app inside Telegram.";
-
-    document.getElementById("coins").textContent = "—";
     return null;
   }
 
   try {
+
     const res = await fetch(API + "/api/me", {
       method: "GET",
       headers: headers()
@@ -146,12 +147,14 @@ async function loadAccount() {
 
     const data = await res.json();
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || "Connection failed");
+    if (!res.ok || !data.success || !data.user) {
+      throw new Error(data.error || "Account connection failed");
     }
 
+    const balance = Number(data.user.coins || 0);
+
     document.getElementById("coins").textContent =
-      Number(data.user.coins).toLocaleString();
+      balance.toLocaleString();
 
     document.getElementById("wallet").value =
       data.user.ton_wallet || "";
@@ -159,9 +162,12 @@ async function loadAccount() {
     document.getElementById("status").textContent =
       "Account connected successfully.";
 
-    return Number(data.user.coins);
+    return balance;
 
   } catch (error) {
+
+    document.getElementById("coins").textContent = "—";
+
     document.getElementById("status").textContent =
       "Connection error: " + error.message;
 
@@ -170,46 +176,47 @@ async function loadAccount() {
 }
 
 
-// COUNTDOWN
+// COOLDOWN DISPLAY
 
-function startCountdown(seconds) {
-
-  clearInterval(countdownTimer);
+function updateCooldown() {
 
   const button = document.getElementById("watchButton");
 
-  let remaining = Math.max(1, Number(seconds));
+  const remaining = Math.ceil(
+    (cooldownUntil - Date.now()) / 1000
+  );
 
-  button.disabled = true;
+  if (remaining > 0) {
 
-  function update() {
+    button.disabled = true;
+    button.textContent = "⏳ Next Ad in " + remaining + "s";
 
-    button.textContent =
-      "⏳ Next Ad in " + remaining + "s";
+  } else {
 
-    if (remaining <= 0) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
 
-      clearInterval(countdownTimer);
-
+    if (!adRunning) {
       button.disabled = false;
       button.textContent = "📺 Watch Ads";
-
-      document.getElementById("status").textContent =
-        "You can watch another ad now.";
-
-      return;
     }
-
-    remaining--;
   }
-
-  update();
-
-  countdownTimer = setInterval(update, 1000);
 }
 
 
-// CHECK COOLDOWN ON SERVER
+function startCountdown(seconds) {
+
+  cooldownUntil = Date.now() + (Number(seconds) * 1000);
+
+  clearInterval(countdownTimer);
+
+  updateCooldown();
+
+  countdownTimer = setInterval(updateCooldown, 1000);
+}
+
+
+// ASK SERVER FOR PERMISSION
 
 async function startAdPermission() {
 
@@ -221,6 +228,7 @@ async function startAdPermission() {
   const data = await res.json();
 
   if (res.status === 429) {
+
     startCountdown(data.remaining || 30);
 
     document.getElementById("status").textContent =
@@ -230,14 +238,14 @@ async function startAdPermission() {
   }
 
   if (!res.ok || !data.success || !data.allowed) {
-    throw new Error(data.error || "Could not start ad.");
+    throw new Error(data.error || "Could not start advertisement.");
   }
 
   return true;
 }
 
 
-// REFRESH REWARD
+// CHECK REWARD FROM SERVER
 
 async function refreshReward(oldBalance) {
 
@@ -255,7 +263,7 @@ async function refreshReward(oldBalance) {
     ) {
 
       document.getElementById("status").textContent =
-        "Reward received successfully!";
+        "Congratulations! Your reward has arrived.";
 
       return true;
     }
@@ -268,15 +276,211 @@ async function refreshReward(oldBalance) {
 }
 
 
-// WATCH ADS
+// WATCH REWARDED ADS
 
 async function watchAd() {
 
   if (!tg.initData) {
-    alert("Open the app inside Telegram.");
+    alert("Please open the app inside Telegram.");
     return;
   }
 
   if (adRunning) return;
 
   if (typeof show_12171277 !== "function") {
+    alert("Advertisement is not ready. Please try again.");
+    return;
+  }
+
+  adRunning = true;
+
+  const button = document.getElementById("watchButton");
+
+  button.disabled = true;
+  button.textContent = "Checking...";
+
+  try {
+
+    // CHECK SERVER COOLDOWN
+
+    const permitted = await startAdPermission();
+
+    if (!permitted) return;
+
+    // SAVE CURRENT BALANCE
+
+    const oldBalance =
+      Number(
+        document.getElementById("coins").textContent.replace(/,/g, "")
+      ) || 0;
+
+    // START 30 SECOND SERVER COOLDOWN
+
+    startCountdown(30);
+
+    // UNIQUE AD ID
+
+    const ymid =
+      "ad_" + Date.now() + "_" +
+      Math.random().toString(36).slice(2, 10);
+
+    document.getElementById("status").textContent =
+      "Loading advertisement...";
+
+    // SHOW MONETAG REWARDED AD
+
+    const result = await show_12171277({
+      ymid: ymid,
+      requestVar: "watch_ads"
+    });
+
+    if (result?.reward_event_type === "valued") {
+
+      document.getElementById("status").textContent =
+        "Ad completed. Checking reward...";
+
+      await refreshReward(oldBalance);
+
+    } else {
+
+      document.getElementById("status").textContent =
+        "No valued reward was confirmed.";
+
+    }
+
+  } catch (error) {
+
+    console.log("Ad error:", error);
+
+    document.getElementById("status").textContent =
+      "Advertisement error: " + error.message;
+
+  } finally {
+
+    adRunning = false;
+
+    updateCooldown();
+
+  }
+}
+
+
+// SAVE TON WALLET
+
+async function saveWallet() {
+
+  const wallet =
+    document.getElementById("wallet").value.trim();
+
+  if (wallet.length < 20 || wallet.length > 100) {
+    alert("Please enter a valid TON wallet address.");
+    return;
+  }
+
+  try {
+
+    const res = await fetch(API + "/api/ton-wallet", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ wallet })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Could not save wallet.");
+    }
+
+    alert("TON wallet saved successfully.");
+
+  } catch (error) {
+
+    alert(error.message);
+
+  }
+}
+
+
+// INVITE FRIENDS
+
+function invite() {
+
+  const link = "https://t.me/ArewaWatchEarnBot";
+
+  const text = "Join AREWA WATCH & EARN!";
+
+  tg.openTelegramLink(
+    "https://t.me/share/url?url=" +
+    encodeURIComponent(link) +
+    "&text=" +
+    encodeURIComponent(text)
+  );
+}
+
+
+// DAILY BONUS
+
+function dailyBonus() {
+  alert("Daily Bonus is not active yet.");
+}
+
+
+// IN-APP INTERSTITIAL ADS
+
+let inAppAttempts = 0;
+
+function startInAppAds() {
+
+  if (!tg.initData) return;
+
+  if (typeof show_12171277 !== "function") {
+
+    if (inAppAttempts < 10) {
+      inAppAttempts++;
+      setTimeout(startInAppAds, 1000);
+    }
+
+    return;
+  }
+
+  try {
+
+    show_12171277({
+      type: "inApp",
+      inAppSettings: {
+        frequency: 1,
+        capping: 0.1,
+        interval: 30,
+        timeout: 5,
+        everyPage: false
+      }
+    });
+
+  } catch (error) {
+
+    console.log("In-app ad error:", error);
+
+  }
+}
+
+
+// REFRESH ACCOUNT WHEN RETURNING
+
+document.addEventListener("visibilitychange", function() {
+
+  if (!document.hidden) {
+    loadAccount();
+  }
+
+});
+
+
+// START APPLICATION
+
+loadAccount();
+
+setTimeout(startInAppAds, 5000);
+
+</script>
+</body>
+</html>
