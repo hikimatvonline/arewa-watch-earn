@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AREWA WATCH & EARN</title>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://libtl.com/sdk.js" data-zone="12171277" data-sdk="show_12171277"></script>
-
-<style>
+<title>AREWA WATCH & EARN</title><script src="https://telegram.org/js/telegram-web-app.js"></script><script src="https://libtl.com/sdk.js" data-zone="12171277" data-sdk="show_12171277"></script><style>
 body {
   margin: 0;
   padding: 20px;
@@ -59,74 +53,59 @@ input {
 
 #status { color: #facc15; }
 .referrals { color: #22c55e; font-size: 18px; }
-</style>
-</head>
 
-<body>
-
-<div class="box">
-
-<h1>AREWA WATCH & EARN</h1>
-<p>Welcome to our earning platform</p>
-
-<h3>Your Coin Balance</h3>
-<div class="balance" id="coins">Loading...</div>
-
-<p id="status">Connecting...</p>
-
-<button id="watchButton" onclick="watchAd()">
+#adminButton {
+  display: none;
+  background: #7c3aed;
+}
+</style></head><body><div class="box"><h1>AREWA WATCH & EARN</h1>
+<p>Welcome to our earning platform</p><button id="adminButton" onclick="openAdminDashboard()">
+🔐 Admin Dashboard
+</button><h3>Your Coin Balance</h3>
+<div class="balance" id="coins">Loading...</div><p id="status">Connecting...</p><button id="watchButton" onclick="watchAd()">
 📺 Watch Ads
-</button>
-
-<button onclick="dailyBonus()" disabled>
+</button><button onclick="dailyBonus()" disabled>
 🎁 Daily Bonus (Coming Soon)
-</button>
-
-<button onclick="invite()">
+</button><button onclick="invite()">
 👥 Invite Friends
-</button>
-
-<p class="referrals">
+</button><p class="referrals">
 Your Referrals: <span id="referralCount">0</span>
-</p>
-
-<hr>
-
-<h3>TON Wallet</h3>
-
-<input id="wallet" type="text"
+</p><hr><h3>TON Wallet</h3><input id="wallet" type="text"
 placeholder="Enter your TON wallet address">
 
 <button onclick="saveWallet()">
 Save TON Wallet
-</button>
-
-<button disabled>
+</button><button disabled>
 💸 Withdraw (Coming Soon)
-</button>
-
-</div>
-
-<script>
+</button></div><script>
 
 const API = "https://arewawatchearn.abdullahiyaya5555.workers.dev";
+const ADMIN_TELEGRAM_ID = "9102497661";
 
 const tg = window.Telegram.WebApp;
 
 tg.ready();
 tg.expand();
 
+// SHOW ADMIN BUTTON ONLY TO ADMIN
+
+if (
+  String(tg.initDataUnsafe?.user?.id || "") === ADMIN_TELEGRAM_ID
+) {
+  document.getElementById("adminButton").style.display = "block";
+}
+
+// OPEN ADMIN DASHBOARD
+
+function openAdminDashboard() {
+  window.location.href = "./admin.html";
+}
+
 let adRunning = false;
 let cooldownUntil = 0;
 let countdownTimer = null;
 
-
-// REFERRAL PARAMETER
-
 const startParam = tg.initDataUnsafe?.start_param || "";
-
-
-// AUTHENTICATION HEADERS
 
 function headers() {
   return {
@@ -134,9 +113,6 @@ function headers() {
     "Authorization": "tma " + tg.initData
   };
 }
-
-
-// LOAD ACCOUNT
 
 async function loadAccount() {
 
@@ -188,9 +164,6 @@ async function loadAccount() {
   }
 }
 
-
-// COOLDOWN DISPLAY
-
 function updateCooldown() {
 
   const button = document.getElementById("watchButton");
@@ -216,7 +189,6 @@ function updateCooldown() {
   }
 }
 
-
 function startCountdown(seconds) {
 
   cooldownUntil = Date.now() + (Number(seconds) * 1000);
@@ -227,9 +199,6 @@ function startCountdown(seconds) {
 
   countdownTimer = setInterval(updateCooldown, 1000);
 }
-
-
-// ASK SERVER FOR PERMISSION
 
 async function startAdPermission() {
 
@@ -257,9 +226,6 @@ async function startAdPermission() {
   return true;
 }
 
-
-// CHECK REWARD FROM SERVER
-
 async function refreshReward(oldBalance) {
 
   for (let i = 0; i < 10; i++) {
@@ -284,9 +250,6 @@ async function refreshReward(oldBalance) {
 
   return false;
 }
-
-
-// WATCH REWARDED ADS
 
 async function watchAd() {
 
@@ -363,9 +326,6 @@ async function watchAd() {
   }
 }
 
-
-// SAVE TON WALLET
-
 async function saveWallet() {
 
   const wallet =
@@ -399,13 +359,10 @@ async function saveWallet() {
   }
 }
 
-
-// INVITE FRIENDS
-
 function invite() {
 
   if (!tg.initDataUnsafe?.user?.id) {
-    alert("Please open this app inside Telegram.");
+    alert("Please open the app inside Telegram.");
     return;
   }
 
@@ -425,15 +382,9 @@ function invite() {
   );
 }
 
-
-// DAILY BONUS
-
 function dailyBonus() {
   alert("Daily Bonus is not active yet.");
 }
-
-
-// IN-APP INTERSTITIAL ADS
 
 let inAppAttempts = 0;
 
@@ -471,9 +422,6 @@ function startInAppAds() {
   }
 }
 
-
-// REFRESH ACCOUNT WHEN RETURNING
-
 document.addEventListener("visibilitychange", function() {
 
   if (!document.hidden) {
@@ -482,14 +430,9 @@ document.addEventListener("visibilitychange", function() {
 
 });
 
-
-// START APPLICATION
-
 loadAccount();
 
 setTimeout(startInAppAds, 5000);
 
-</script>
-
-</body>
+</script></body>
 </html>
