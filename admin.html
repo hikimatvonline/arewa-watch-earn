@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AREWA WATCH & EARN - Admin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #0b1220;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin: 20px 0 30px;
+}
+
+.header h2 {
+  color: #25d366;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: #aaa;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.card {
+  background: #172338;
+  border: 1px solid #263750;
+  padding: 20px 12px;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.card h3 {
+  font-size: 13px;
+  color: #aab8cc;
+  margin: 0 0 15px;
+}
+
+.number {
+  font-size: 25px;
+  font-weight: bold;
+  color: #25d366;
+  overflow-wrap: anywhere;
+}
+
+.revenue {
+  grid-column: span 2;
+}
+
+.revenue .number {
+  color: #ffc857;
+  font-size: 30px;
+}
+
+button {
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background: #25d366;
+  color: #07130b;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#status {
+  text-align: center;
+  margin: 20px 0;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.footer {
+  text-align: center;
+  color: #777;
+  font-size: 12px;
+  margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>AREWA WATCH & EARN</h2>
+  <p>ADMIN DASHBOARD</p>
+</div>
+
+<div id="status">Checking admin access...</div>
+
+<div class="grid" id="dashboard" style="display:none">
+
+  <div class="card">
+    <h3>Total Users</h3>
+    <div class="number" id="users">0</div>
+  </div>
+
+  <div class="card">
+    <h3>Total Referrals</h3>
+    <div class="number" id="referrals">0</div>
+  </div>
+
+  <div class="card">
+    <h3>Verified Ads</h3>
+    <div class="number" id="ads">0</div>
+  </div>
+
+  <div class="card">
+    <h
