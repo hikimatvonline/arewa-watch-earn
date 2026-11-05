@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AREWA WATCH & EARN - Admin</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -31,6 +32,18 @@ body {
 
 .header p {
   color: #aaa;
+}
+
+#status {
+  text-align: center;
+  margin: 25px 0;
+  padding: 15px;
+  border-radius: 10px;
+  background: #172338;
+  color: #ffc857;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .grid {
@@ -71,7 +84,7 @@ body {
 
 button {
   width: 100%;
-  margin-top: 25px;
+  margin-top: 20px;
   padding: 15px;
   border: none;
   border-radius: 10px;
@@ -81,11 +94,9 @@ button {
   font-weight: bold;
 }
 
-#status {
-  text-align: center;
-  margin: 20px 0;
-  color: #aaa;
-  font-size: 14px;
+.secondary {
+  background: #263750;
+  color: white;
 }
 
 .footer {
@@ -124,4 +135,228 @@ button {
   </div>
 
   <div class="card">
-    <h
+    <h3>Ad Coins Issued</h3>
+    <div class="number" id="adCoins">0</div>
+  </div>
+
+  <div class="card">
+    <h3>Referral Coins Issued</h3>
+    <div class="number" id="referralCoins">0</div>
+  </div>
+
+  <div class="card">
+    <h3>Total Coins Issued</h3>
+    <div class="number" id="totalCoins">0</div>
+  </div>
+
+  <div class="card revenue">
+    <h3>Estimated Revenue (USD)</h3>
+    <div class="number" id="revenue">$0.00</div>
+  </div>
+
+</div>
+
+<button onclick="loadDashboard()">🔄 Refresh Dashboard</button>
+
+<button class="secondary" onclick="goBack()">← Back to App</button>
+
+<div class="footer">
+  AREWA WATCH & EARN<br>
+  Admin Dashboard
+</div>
+
+<script>
+const API_URL =
+"https://arewawatchearn.abdullahiyaya5555.workers.dev";
+
+const statusBox = document.getElementById("status");
+const dashboard = document.getElementById("dashboard");
+
+const tg = window.Telegram
+  ? window.Telegram.WebApp
+  : null;
+
+function showStatus(message, error = false) {
+  statusBox.style.display = "block";
+  statusBox.style.color = error ? "#ff7777" : "#ffc857";
+  statusBox.textContent = message;
+}
+
+function getNumber(data, names) {
+  for (const name of names) {
+    if (data[name] !== undefined && data[name] !== null) {
+      return Number(data[name]) || 0;
+    }
+  }
+  return 0;
+}
+
+function formatNumber(value) {
+  return Number(value).toLocaleString("en-US");
+}
+
+async function loadDashboard() {
+  dashboard.style.display = "none";
+
+  if (!tg) {
+    showStatus(
+      "Telegram WebApp was not detected. Please open this page inside your Telegram Mini App.",
+      true
+    );
+    return;
+  }
+
+  tg.ready();
+  tg.expand();
+
+  const initData = tg.initData;
+
+  if (!initData) {
+    showStatus(
+      "Telegram authentication data is missing. Please return to the Telegram app and open Admin Dashboard again.",
+      true
+    );
+    return;
+  }
+
+  showStatus("Checking admin access...");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/admin/stats",
+      {
+        method: "GET",
+        headers: {
+          "Authorization": "tma " + initData
+        },
+        signal: controller.signal
+      }
+    );
+
+    clearTimeout(timeout);
+
+    const rawText = await response.text();
+
+    let result;
+
+    try {
+      result = JSON.parse(rawText);
+    } catch {
+      throw new Error(
+        "Worker returned an invalid response. HTTP " +
+        response.status
+      );
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ||
+        result.message ||
+        "HTTP error " + response.status
+      );
+    }
+
+    if (result.ok === false || result.success === false) {
+      throw new Error(
+        result.error ||
+        result.message ||
+        "Admin access denied"
+      );
+    }
+
+    const data =
+      result.stats ||
+      result.data ||
+      result;
+
+    document.getElementById("users").textContent =
+      formatNumber(getNumber(data, [
+        "totalUsers",
+        "total_users",
+        "users"
+      ]));
+
+    document.getElementById("referrals").textContent =
+      formatNumber(getNumber(data, [
+        "totalReferrals",
+        "total_referrals",
+        "referrals"
+      ]));
+
+    document.getElementById("ads").textContent =
+      formatNumber(getNumber(data, [
+        "verifiedAds",
+        "verified_ads",
+        "totalAds",
+        "total_ads"
+      ]));
+
+    document.getElementById("adCoins").textContent =
+      formatNumber(getNumber(data, [
+        "adCoinsIssued",
+        "ad_coins_issued",
+        "adCoins"
+      ]));
+
+    document.getElementById("referralCoins").textContent =
+      formatNumber(getNumber(data, [
+        "referralCoinsIssued",
+        "referral_coins_issued",
+        "referralCoins"
+      ]));
+
+    document.getElementById("totalCoins").textContent =
+      formatNumber(getNumber(data, [
+        "totalCoinsIssued",
+        "total_coins_issued",
+        "totalCoins"
+      ]));
+
+    const revenue = getNumber(data, [
+      "estimatedRevenueUSD",
+      "estimated_revenue_usd",
+      "estimatedRevenue",
+      "estimated_revenue"
+    ]);
+
+    document.getElementById("revenue").textContent =
+      "$" + revenue.toFixed(6);
+
+    statusBox.style.display = "none";
+    dashboard.style.display = "grid";
+
+  } catch (error) {
+    clearTimeout(timeout);
+
+    if (error.name === "AbortError") {
+      showStatus(
+        "Connection timed out. Please check your internet and try again.",
+        true
+      );
+    } else {
+      showStatus(
+        "Dashboard Error: " + error.message,
+        true
+      );
+    }
+
+    console.error("Admin Dashboard Error:", error);
+  }
+}
+
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "./index.html";
+  }
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
